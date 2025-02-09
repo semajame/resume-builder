@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { Ellipsis } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -9,35 +10,48 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
 export default function ResumeForm() {
   const [resume, setResume] = useState<{
     name: string
     email: string
     phone: string
-    education: string
+    education: {
+      school: string
+      program: string
+      start_date: string
+      end_date: string
+      isPresent: boolean
+    }[]
     experience: {
       company: string
       position: string
       start_date: string
       end_date: string
       job_description: string
+      isPresent: boolean
     }[]
-    skills: string
+    skills: string[] // ✅ Changed to an array
     summary: string
     location: string
-    certificates: string
-    projects: string
+    certificates: { name: string; issued_by: string; date: string }[] // ✅ Changed to an array of objects
+    projects: { title: string; description: string; link?: string }[] // ✅ Changed to an array of objects
   }>({
     name: '',
     email: '',
     phone: '',
-    education: '',
-    experience: [], // Explicitly set as an array
-    skills: '',
+    education: [],
+    experience: [],
+    skills: [], // ✅ Now correctly an array
     summary: '',
     location: '',
-    certificates: '',
-    projects: '',
+    certificates: [], // ✅ Now correctly an array
+    projects: [], // ✅ Now correctly an array
   })
 
   const [experience, setExperience] = useState({
@@ -49,6 +63,28 @@ export default function ResumeForm() {
     isPresent: false,
   })
 
+  const [education, setEducation] = useState({
+    school: '',
+    program: '',
+    start_date: '',
+    end_date: '',
+    isPresent: false,
+  })
+
+  const [projects, setProjects] = useState({
+    title: '',
+    description: '',
+    link: '',
+  })
+
+  const [certificates, setCertificates] = useState({
+    name: '',
+    issued_by: '',
+    date: '',
+  })
+
+  const [skillInput, setSkillInput] = useState('') // State for input field
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -58,14 +94,105 @@ export default function ResumeForm() {
   const handleExperienceChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type, checked } = e.target
-    setExperience((prev) => ({
+    const { name, value, type } = e.target
+    const checked = (e.target as HTMLInputElement).checked // Type assertion
+
+    setExperience((prev) => {
+      let newEndDate = prev.end_date
+
+      // If the user is typing in the end_date, don't override it immediately
+      if (name === 'end_date' && !prev.isPresent) {
+        newEndDate = value
+      }
+
+      // If the user checks the "Currently Working Here" checkbox, set end_date to "Present"
+      if (name === 'isPresent') {
+        newEndDate = checked ? 'Present' : ''
+      }
+
+      return {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+        end_date: newEndDate,
+      }
+    })
+  }
+
+  const handleEducationChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, type } = e.target
+    const checked = (e.target as HTMLInputElement).checked // Type assertion
+
+    setEducation((prev) => {
+      let newEndDate = prev.end_date
+
+      if (name === 'end_date' && !prev.isPresent) {
+        newEndDate = value
+      }
+
+      if (name === 'isPresent') {
+        newEndDate = checked ? 'Present' : ''
+      }
+
+      return {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+        end_date: newEndDate,
+      }
+    })
+  }
+
+  const handleProjectChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target
+    setProjects((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value, // Handle checkbox separately
-      end_date: name === 'isPresent' && checked ? 'Present' : prev.end_date, // Update end_date if checked
+      [name]: value, // ✅ Dynamically update the correct field
     }))
   }
 
+  const handleCertificateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setCertificates((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  // ADD CERTFICATE
+  const addCertificate = () => {
+    if (
+      !certificates.name.trim() ||
+      !certificates.issued_by.trim() ||
+      !certificates.date.trim()
+    )
+      return
+
+    setResume((prev) => ({
+      ...prev,
+      certificates: [...prev.certificates, certificates], // Append the new certificate
+    }))
+
+    // Reset input fields
+    setCertificates({ name: '', issued_by: '', date: '' })
+  }
+
+  // ADD PROJECTS
+  const addProject = () => {
+    if (!projects.title.trim() || !projects.description.trim()) return // Prevent empty input
+
+    setResume((prev) => ({
+      ...prev,
+      projects: [...prev.projects, { ...projects }], // ✅ Ensure a new object is added
+    }))
+
+    // Reset input fields after adding
+    setProjects({ title: '', description: '', link: '' })
+  }
+
+  // ADD EXPERIENCE
   const addExperience = () => {
     if (experience.company && experience.position) {
       setResume((prev) => ({
@@ -78,9 +205,46 @@ export default function ResumeForm() {
         start_date: '',
         end_date: '',
         job_description: '',
-        isPresent: false,
+        isPresent: false, // ✅ Reset to false
       }) // Reset input fields
     }
+  }
+
+  // ADD EDUCATION
+  const addEducation = () => {
+    if (education.school && education.program) {
+      setResume((prev) => ({
+        ...prev,
+        education: [...prev.education, education], // ✅ Append education correctly
+      }))
+      setEducation({
+        school: '',
+        program: '',
+        start_date: '',
+        end_date: '',
+        isPresent: false,
+      })
+    }
+  }
+
+  // ADD SKILLS
+  const addSkills = () => {
+    if (!skillInput.trim()) return // Prevent empty input
+
+    // Split input by commas, trim spaces, and filter out empty values
+    const newSkills = skillInput
+      .split(',')
+      .map((skill) => skill.trim())
+      .filter((skill) => skill && !resume.skills.includes(skill.toLowerCase()))
+
+    if (newSkills.length > 0) {
+      setResume((prev) => ({
+        ...prev,
+        skills: [...prev.skills, ...newSkills], // Append new skills
+      }))
+    }
+
+    setSkillInput('') // Clear input field
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,8 +255,10 @@ export default function ResumeForm() {
   }
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return ''
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString || dateString === 'Present') return dateString
+
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -102,10 +268,13 @@ export default function ResumeForm() {
   return (
     <div className='flex min-h-screen gap-5'>
       {/* FORM */}
-      <form onSubmit={handleSubmit} className='w-2/5 space-y-4 p-4'>
+      <form
+        onSubmit={handleSubmit}
+        className='w-2/5 space-y-4 p-4 flex flex-col justify-between'
+      >
         <Tabs defaultValue='personal' className='w-full'>
-          <TabsList className='w-full flex justify-between'>
-            <TabsTrigger value='personal' className='w-full'>
+          <TabsList className='w-full flex justify-between '>
+            <TabsTrigger value='personal' className='w-full '>
               Personal
             </TabsTrigger>
             <TabsTrigger value='experience' className='w-full'>
@@ -115,6 +284,33 @@ export default function ResumeForm() {
             <TabsTrigger value='education' className='w-full'>
               Education
             </TabsTrigger>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                {' '}
+                <Ellipsis className='w-[80px]' />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className=' border-none flex flex-col gap-2 mt-2 bg-gray-100  dark:bg-zinc-800'>
+                <TabsTrigger
+                  value='skills'
+                  className='w-full border-none text-gray-500 dark:text-gray-300'
+                >
+                  Skills
+                </TabsTrigger>
+                <TabsTrigger
+                  value='projects'
+                  className='w-full border-none bg-transparent text-gray-500 dark:text-gray-300'
+                >
+                  Projects
+                </TabsTrigger>
+                <TabsTrigger
+                  value='certificates'
+                  className='w-full border-none bg-transparent text-gray-500 dark:text-gray-300'
+                >
+                  Certificates
+                </TabsTrigger>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </TabsList>
 
           {/* Personal Tab */}
@@ -125,6 +321,7 @@ export default function ResumeForm() {
               <Input
                 type='text'
                 name='name'
+                placeholder='John Doe'
                 value={resume.name}
                 onChange={handleChange}
                 required
@@ -135,36 +332,37 @@ export default function ResumeForm() {
               <Input
                 type='email'
                 name='email'
+                placeholder='johndoe@example.com'
                 value={resume.email}
                 onChange={handleChange}
                 required
               />
             </div>
-
             <div>
               <Label>Phone</Label>
               <Input
                 type='tel'
                 name='phone'
+                placeholder='+1234567890'
                 value={resume.phone}
                 onChange={handleChange}
               />
             </div>
-
             <div>
               <Label>Location</Label>
               <Input
                 type='text'
                 name='location'
+                placeholder='New York, USA'
                 value={resume.location}
                 onChange={handleChange}
               />
             </div>
-
             <div>
               <Label>Summary</Label>
               <Textarea
                 name='summary'
+                placeholder='Briefly introduce yourself...'
                 value={resume.summary}
                 onChange={handleChange}
                 required
@@ -173,13 +371,14 @@ export default function ResumeForm() {
           </TabsContent>
 
           {/* Experience Tab */}
-          <TabsContent value='experience' className='space-y-4'>
-            <h1 className='text-2xl font-medium mt-4'>Experience</h1>
+          <TabsContent value='experience' className='space-y-4 '>
+            <h1 className='text-2xl font-medium my-5'>Experience</h1>
             <div>
               <Label>Company</Label>
               <Input
                 type='text'
                 name='company'
+                placeholder='Google, Microsoft, etc.'
                 value={experience.company}
                 onChange={handleExperienceChange}
               />
@@ -189,6 +388,7 @@ export default function ResumeForm() {
               <Input
                 type='text'
                 name='position'
+                placeholder='Software Engineer, Manager, etc.'
                 value={experience.position}
                 onChange={handleExperienceChange}
               />
@@ -208,8 +408,9 @@ export default function ResumeForm() {
                 <Input
                   type='date'
                   name='end_date'
-                  value={experience.end_date}
+                  value={experience.isPresent ? 'Present' : experience.end_date}
                   onChange={handleExperienceChange}
+                  disabled={experience.isPresent}
                 />
               </div>
             </div>
@@ -221,8 +422,8 @@ export default function ResumeForm() {
                 onCheckedChange={(checked) =>
                   setExperience((prev) => ({
                     ...prev,
-                    isPresent: checked as boolean, // Ensure it's a boolean
-                    end_date: checked ? 'Present' : '', // Reset end_date if unchecked
+                    isPresent: checked as boolean,
+                    end_date: checked ? 'Present' : '',
                   }))
                 }
               />
@@ -232,42 +433,249 @@ export default function ResumeForm() {
               <Label>Job Description</Label>
               <Textarea
                 name='job_description'
+                placeholder='Describe your responsibilities...'
                 value={experience.job_description}
                 onChange={handleExperienceChange}
               />
             </div>
-            <Button type='button' onClick={addExperience}>
+            <Button
+              type='button'
+              onClick={addExperience}
+              aria-label='Add Experience'
+            >
               Add Experience
             </Button>
+          </TabsContent>
 
-            {/* Display Added Experiences */}
-            {resume.experience.length > 0 && (
-              <div className='mt-4 '>
-                <h3 className='font-semibold'>Added Experiences</h3>
-                {resume.experience.map((exp, index) => (
+          {/* Education Tab */}
+          <TabsContent value='education' className='space-y-4'>
+            <h1 className='text-2xl font-medium my-5'>Education</h1>
+            <div>
+              <Label>School</Label>
+              <Input
+                type='text'
+                name='school'
+                placeholder='Harvard University, Stanford, etc.'
+                value={education.school}
+                onChange={handleEducationChange}
+              />
+            </div>
+            <div>
+              <Label>Program</Label>
+              <Input
+                type='text'
+                name='program'
+                placeholder='Computer Science, Business, etc.'
+                value={education.program}
+                onChange={handleEducationChange}
+              />
+            </div>
+            <div className='flex gap-4'>
+              <div>
+                <Label>Start Date</Label>
+                <Input
+                  type='date'
+                  name='start_date'
+                  value={education.start_date}
+                  onChange={handleEducationChange}
+                />
+              </div>
+              <div>
+                <Label>End Date</Label>
+                <Input
+                  type='date'
+                  name='end_date'
+                  value={education.isPresent ? 'Present' : education.end_date}
+                  onChange={handleEducationChange}
+                  disabled={education.isPresent}
+                />
+              </div>
+            </div>
+            <div className='flex items-center gap-2'>
+              <Checkbox
+                id='education-present'
+                name='isPresent'
+                checked={education.isPresent}
+                onCheckedChange={(checked) =>
+                  setEducation((prev) => ({
+                    ...prev,
+                    isPresent: checked as boolean,
+                    end_date: checked ? 'Present' : '',
+                  }))
+                }
+              />
+              <Label htmlFor='education-present'>Currently Studying Here</Label>
+            </div>
+            <Button
+              type='button'
+              onClick={addEducation}
+              aria-label='Add Education'
+            >
+              Add Education
+            </Button>
+          </TabsContent>
+
+          {/* Skills Tab */}
+          <TabsContent value='skills' className='space-y-4'>
+            <h1 className='text-2xl font-medium my-5'>Skills</h1>
+
+            {/* Skill Input */}
+            <div>
+              <Label>Skill</Label>
+              <Input
+                type='text'
+                name='skill'
+                placeholder='Skill'
+                value={skillInput}
+                onChange={(e) => setSkillInput(e.target.value)} // ✅ Correct input handling
+              />
+            </div>
+
+            {/* Add Skill Button */}
+            <Button type='button' onClick={addSkills} aria-label='Add Skill'>
+              Add Skill
+            </Button>
+
+            {/* Display Added Skills */}
+            {resume.skills.length > 0 && (
+              <div className='mt-4'>
+                <h3 className='font-semibold'>Added Skills</h3>
+                {resume.skills.map((skill, index) => (
                   <div key={index} className='border p-2 mt-2 rounded-md'>
                     <p>
-                      <strong>{exp.company}</strong> - {exp.position}
+                      <strong>{skill}</strong>
                     </p>
-                    <p className='text-sm'>
-                      {exp.start_date} to {exp.end_date}
-                    </p>
-                    <p className='text-sm'>{exp.job_description}</p>
                   </div>
                 ))}
               </div>
             )}
           </TabsContent>
 
-          {/* Education Tab */}
-          <TabsContent value='education' className='space-y-4'>
-            <h1 className='text-2xl font-medium my-5'>Education</h1>
-            <Label>Education</Label>
-            <Textarea
-              name='education'
-              value={resume.education}
-              onChange={handleChange}
-            />
+          {/* Projects Tab */}
+          <TabsContent value='projects' className='space-y-4'>
+            <h1 className='text-2xl font-medium my-5'>Projects</h1>
+
+            {/* Project Input */}
+            <div>
+              <Label>Title</Label>
+              <Input
+                type='text'
+                name='title'
+                value={projects.title}
+                placeholder='e.g., Portfolio Website'
+                onChange={handleProjectChange}
+              />
+            </div>
+
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                name='description'
+                value={projects.description}
+                placeholder='Briefly describe your project'
+                onChange={handleProjectChange}
+                required
+              />
+            </div>
+
+            <div>
+              <Label>Link</Label>
+              <Input
+                type='text'
+                name='link'
+                value={projects.link}
+                placeholder='e.g., https://myproject.com'
+                onChange={handleProjectChange}
+              />
+            </div>
+
+            {/* Add Project Button */}
+            <Button type='button' onClick={addProject} aria-label='Add Project'>
+              Add Project
+            </Button>
+
+            {resume.projects.length > 0 && (
+              <div className='mt-4'>
+                <h3 className='font-semibold'>Added Projects</h3>
+                <ul className='list-disc pl-4'>
+                  {resume.projects.map((project, index) => (
+                    <li key={index} className='border p-2 mt-2 rounded-md'>
+                      <p className='font-bold'>{project.title}</p>
+                      <p>{project.description}</p>
+                      {project.link && (
+                        <a
+                          href={project.link}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='text-blue-500 underline'
+                        >
+                          {project.link}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Certifcates Tab */}
+          <TabsContent value='certificates' className='space-y-4'>
+            <h1 className='text-2xl font-medium my-5'>Certificate</h1>
+            <div>
+              <Label>Certificate Name</Label>
+              <Input
+                type='text'
+                name='name'
+                value={certificates.name}
+                onChange={handleCertificateChange}
+                placeholder='e.g., AWS Certified Developer'
+              />
+            </div>
+
+            <div>
+              <Label>Issued By</Label>
+              <Input
+                type='text'
+                name='issued_by'
+                value={certificates.issued_by}
+                onChange={handleCertificateChange}
+                placeholder='e.g., Amazon Web Services'
+              />
+            </div>
+
+            <div>
+              <Label>Date</Label>
+              <Input
+                type='date'
+                name='date'
+                value={certificates.date}
+                onChange={handleCertificateChange}
+              />
+            </div>
+
+            <Button
+              type='button'
+              onClick={addCertificate}
+              aria-label='Add Certificate'
+            >
+              Add Certificate
+            </Button>
+
+            {resume.certificates.length > 0 && (
+              <div className='mt-4'>
+                <h3 className='font-semibold'>Added certificates</h3>
+                <ul className='list-disc pl-4'>
+                  {resume.certificates.map((certif, index) => (
+                    <li key={index} className='border p-2 mt-2 rounded-md'>
+                      <p className='font-bold'>{certif.name}</p>
+                      <p>{certif.issued_by}</p>
+                      <p>{certif.date}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
         <Button type='submit'>Save Resume</Button>
@@ -276,7 +684,7 @@ export default function ResumeForm() {
       {/* LIVE PREVIEW */}
       <div className='w-3/5 border p-10 rounded-md'>
         <h2 className='text-lg font-semibold'>
-          {resume.name || <span className='text-gray-400'>Your Name</span>}
+          {resume.name || <span className=''>Your Name</span>}
         </h2>
         <p className='text-sm'>
           {resume.email || (
@@ -324,17 +732,33 @@ export default function ResumeForm() {
         <h3 className='font-semibold mt-4 text-2xl'>Education</h3>
         <hr className='mt-2 mb-5' />
 
-        <p className='text-sm'>
-          {resume.education || (
-            <span className='text-gray-400'>Your education details...</span>
+        <div className='flex flex-col gap-2'>
+          {resume.education && resume.education.length > 0 ? (
+            resume.education.map((edu, index) => (
+              <div key={index} className='text-sm'>
+                <div>
+                  <div className='flex justify-between'>
+                    <p>
+                      <strong>{edu.school}</strong> - {edu.program}
+                    </p>
+                    <p>
+                      {formatDate(edu.start_date)} -{' '}
+                      {edu.isPresent ? 'Present' : formatDate(edu.end_date)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className='text-gray-400'>Your education history...</p>
           )}
-        </p>
+        </div>
 
         <h3 className='font-semibold mt-4 text-2xl'>Skills</h3>
         <hr className='mt-2 mb-5' />
 
         <p className='text-sm'>
-          {resume.skills || (
+          {resume.skills.join(', ') || (
             <span className='text-gray-400'>Your skills...</span>
           )}
         </p>
@@ -343,7 +767,26 @@ export default function ResumeForm() {
         <hr className='mt-2 mb-5' />
 
         <p className='text-sm'>
-          {resume.projects || (
+          {resume.projects.length > 0 ? (
+            resume.projects.map((project, index) => (
+              <span key={index} className='block'>
+                <strong>{project.title}</strong>: {project.description}
+                {project.link && (
+                  <>
+                    {' '}
+                    <a
+                      href={project.link}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-blue-500 underline'
+                    >
+                      {project.link}
+                    </a>
+                  </>
+                )}
+              </span>
+            ))
+          ) : (
             <span className='text-gray-400'>Your projects...</span>
           )}
         </p>
@@ -352,7 +795,14 @@ export default function ResumeForm() {
         <hr className='mt-2 mb-5' />
 
         <p className='text-sm'>
-          {resume.certificates || (
+          {resume.certificates.length > 0 ? (
+            resume.certificates.map((cert, index) => (
+              <div key={index}>
+                <span className='font-medium'>{cert.name}</span> –{' '}
+                {cert.issued_by} ({cert.date})
+              </div>
+            ))
+          ) : (
             <span className='text-gray-400'>Your certificates...</span>
           )}
         </p>

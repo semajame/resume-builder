@@ -7,8 +7,9 @@ export interface Resume {
   phone?: string
   education: Record<string, any>[]
   experience: Record<string, any>[]
-  skills: string[]
-  certifications: string
-  projects: string
+  skills: Record<string, any>[]
+  certifications: Record<string, any>[]
+  projects: Record<string, any>[]
   created_at: string
+  isPresent: boolean // ✅ Change from `false` to `boolean`
 }
