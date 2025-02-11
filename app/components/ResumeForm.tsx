@@ -15,6 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { PdfDialog } from './PdfDialog'
 
 export default function ResumeForm() {
   const [resume, setResume] = useState<{
@@ -246,6 +247,14 @@ export default function ResumeForm() {
 
     setSkillInput('') // Clear input field
   }
+  const removeItem = (field: keyof typeof resume, index: number) => {
+    setResume((prev) => ({
+      ...prev,
+      [field]: Array.isArray(prev[field])
+        ? (prev[field] as any[]).filter((_, i) => i !== index) // Only apply filter if it's an array
+        : prev[field], // Keep the value unchanged if it's not an array
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -266,12 +275,9 @@ export default function ResumeForm() {
   }
 
   return (
-    <div className='flex min-h-screen gap-5'>
+    <div className='flex min-h-screen gap-5 flex-between'>
       {/* FORM */}
-      <form
-        onSubmit={handleSubmit}
-        className='w-2/5 space-y-4 p-4 flex flex-col justify-between'
-      >
+      <div className='w-2/5 space-y-4 p-4 flex flex-col justify-between'>
         <Tabs defaultValue='personal' className='w-full'>
           <TabsList className='w-full flex justify-between '>
             <TabsTrigger value='personal' className='w-full '>
@@ -362,6 +368,7 @@ export default function ResumeForm() {
               <Label>Summary</Label>
               <Textarea
                 name='summary'
+                className='h-[100px]'
                 placeholder='Briefly introduce yourself...'
                 value={resume.summary}
                 onChange={handleChange}
@@ -434,6 +441,7 @@ export default function ResumeForm() {
               <Textarea
                 name='job_description'
                 placeholder='Describe your responsibilities...'
+                className='h-[100px]'
                 value={experience.job_description}
                 onChange={handleExperienceChange}
               />
@@ -445,6 +453,29 @@ export default function ResumeForm() {
             >
               Add Experience
             </Button>
+
+            {resume.experience.length > 0 && (
+              <div className='mt-4'>
+                <h2 className='font-semibold'>Added Experiences</h2>
+                {resume.experience.map((exp, index) => (
+                  <div key={index} className='border p-2 mt-2 rounded-md'>
+                    <p>
+                      <strong>{exp.company}</strong> - {exp.position}
+                    </p>
+                    <p className='text-sm'>
+                      {exp.start_date} to {exp.end_date}
+                    </p>
+                    <p className='text-sm'>{exp.job_description}</p>
+                    <Button
+                      onClick={() => removeItem('experience', index)}
+                      className='bg-red-600  text-white my-2 hover:bg-red-700'
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* Education Tab */}
@@ -513,6 +544,29 @@ export default function ResumeForm() {
             >
               Add Education
             </Button>
+
+            {/* Display Added Skills */}
+            {resume.education.length > 0 && (
+              <ul className='flex flex-col gap-2 '>
+                {resume.education.map((edu, index) => (
+                  <li
+                    key={index}
+                    className='flex justify-between border items-center p-2 rounded-md gap-2'
+                  >
+                    <div>
+                      <strong>{edu.school}</strong>
+                      <p>{edu.program}</p>
+                    </div>
+                    <Button
+                      onClick={() => removeItem('education', index)}
+                      className='bg-red-600 dark:text-white hover:bg-red-700'
+                    >
+                      Delete
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </TabsContent>
 
           {/* Skills Tab */}
@@ -538,16 +592,22 @@ export default function ResumeForm() {
 
             {/* Display Added Skills */}
             {resume.skills.length > 0 && (
-              <div className='mt-4'>
-                <h3 className='font-semibold'>Added Skills</h3>
+              <ul className='flex flex-col gap-2 '>
                 {resume.skills.map((skill, index) => (
-                  <div key={index} className='border p-2 mt-2 rounded-md'>
-                    <p>
-                      <strong>{skill}</strong>
-                    </p>
-                  </div>
+                  <li
+                    key={index}
+                    className='flex justify-between border items-center p-2 rounded-md'
+                  >
+                    {skill}
+                    <Button
+                      onClick={() => removeItem('skills', index)}
+                      className='bg-red-600 dark:text-white hover:bg-red-700'
+                    >
+                      Delete
+                    </Button>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </TabsContent>
 
@@ -596,25 +656,33 @@ export default function ResumeForm() {
 
             {resume.projects.length > 0 && (
               <div className='mt-4'>
-                <h3 className='font-semibold'>Added Projects</h3>
-                <ul className='list-disc pl-4'>
-                  {resume.projects.map((project, index) => (
-                    <li key={index} className='border p-2 mt-2 rounded-md'>
-                      <p className='font-bold'>{project.title}</p>
-                      <p>{project.description}</p>
+                <h2 className='font-semibold'>Added Projects</h2>
+                {resume.projects.map((project, index) => (
+                  <div key={index} className='border p-2 mt-2 rounded-md'>
+                    <p>
+                      <strong>{project.title}</strong>
+                    </p>
+
+                    <p className='text-sm'>{project.description}</p>
+                    <div className='flex justify-between items-center'>
                       {project.link && (
                         <a
                           href={project.link}
                           target='_blank'
-                          rel='noopener noreferrer'
-                          className='text-blue-500 underline'
+                          className='text-blue-500 text-sm'
                         >
-                          {project.link}
+                          View Project
                         </a>
                       )}
-                    </li>
-                  ))}
-                </ul>
+                      <Button
+                        onClick={() => removeItem('projects', index)}
+                        className='bg-red-600 dark:text-white hover:bg-red-700'
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </TabsContent>
@@ -664,25 +732,31 @@ export default function ResumeForm() {
 
             {resume.certificates.length > 0 && (
               <div className='mt-4'>
-                <h3 className='font-semibold'>Added certificates</h3>
-                <ul className='list-disc pl-4'>
-                  {resume.certificates.map((certif, index) => (
-                    <li key={index} className='border p-2 mt-2 rounded-md'>
-                      <p className='font-bold'>{certif.name}</p>
-                      <p>{certif.issued_by}</p>
-                      <p>{certif.date}</p>
-                    </li>
-                  ))}
-                </ul>
+                <h2 className='font-semibold'>Added Certificates</h2>
+                {resume.certificates.map((cert, index) => (
+                  <div key={index} className='border p-2 mt-2 rounded-md'>
+                    <p>
+                      <strong>{cert.name}</strong> - {cert.issued_by}
+                    </p>
+                    <p className='text-sm'>{cert.date}</p>
+                    <Button
+                      onClick={() => removeItem('certificates', index)}
+                      className='bg-red-600 my-2 dark:text-white hover:bg-red-700'
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                ))}
               </div>
             )}
           </TabsContent>
         </Tabs>
-        <Button type='submit'>Save Resume</Button>
-      </form>
+
+        <PdfDialog resume={resume} />
+      </div>
 
       {/* LIVE PREVIEW */}
-      <div className='w-3/5 border p-10 rounded-md'>
+      <div className='w-3/5 border p-10 rounded-md h-auto'>
         <h2 className='text-lg font-semibold'>
           {resume.name || <span className=''>Your Name</span>}
         </h2>
@@ -701,7 +775,7 @@ export default function ResumeForm() {
           )}
         </p>
 
-        <h3 className='font-semibold mt-4 text-2xl'>Experience</h3>
+        <h2 className='font-semibold mt-4 text-2xl'>Experience</h2>
         <hr className='mt-2 mb-5' />
 
         <div className='flex flex-col gap-2'>
@@ -729,7 +803,7 @@ export default function ResumeForm() {
           )}
         </div>
 
-        <h3 className='font-semibold mt-4 text-2xl'>Education</h3>
+        <h2 className='font-semibold mt-4 text-2xl'>Education</h2>
         <hr className='mt-2 mb-5' />
 
         <div className='flex flex-col gap-2'>
@@ -754,7 +828,7 @@ export default function ResumeForm() {
           )}
         </div>
 
-        <h3 className='font-semibold mt-4 text-2xl'>Skills</h3>
+        <h2 className='font-semibold mt-4 text-2xl'>Skills</h2>
         <hr className='mt-2 mb-5' />
 
         <p className='text-sm'>
@@ -763,7 +837,7 @@ export default function ResumeForm() {
           )}
         </p>
 
-        <h3 className='font-semibold mt-4 text-2xl'>Projects</h3>
+        <h2 className='font-semibold mt-4 text-2xl'>Projects</h2>
         <hr className='mt-2 mb-5' />
 
         <p className='text-sm'>
@@ -791,7 +865,7 @@ export default function ResumeForm() {
           )}
         </p>
 
-        <h3 className='font-semibold mt-4 text-2xl'>Certificates</h3>
+        <h2 className='font-semibold mt-4 text-2xl'>Certificates</h2>
         <hr className='mt-2 mb-5' />
 
         <p className='text-sm'>
