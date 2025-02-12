@@ -256,13 +256,6 @@ export default function ResumeForm() {
     }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const { error } = await supabase.from('resumes').insert([resume])
-    if (error) console.error('Error adding resume:', error)
-    else alert('Resume added successfully!')
-  }
-
   const formatDate = (dateString: string) => {
     if (!dateString || dateString === 'Present') return dateString
 
