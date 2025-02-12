@@ -756,130 +756,118 @@ export default function ResumeForm() {
       </div>
 
       {/* LIVE PREVIEW */}
-      <div className='w-3/5 border p-10 rounded-md h-auto'>
-        <h2 className='text-lg font-semibold'>
-          {resume.name || <span className=''>Your Name</span>}
-        </h2>
-        <p className='text-sm'>
-          {resume.email || (
-            <span className='text-gray-400'>your@email.com</span>
-          )}{' '}
-          |{' '}
-          {resume.phone || <span className='text-gray-400'>Phone Number</span>}{' '}
-          | {resume.location || <span className='text-gray-400'>Location</span>}
-        </p>
+      <div className='w-3/5 border p-10 rounded-md h-auto times'>
+        {resume.name || resume.email || resume.phone || resume.location ? (
+          <>
+            <h2 className='text-lg font-semibold'>{resume.name || ''}</h2>
+            <p className='text-sm'>
+              {resume.email || ''} {resume.email && resume.phone ? '|' : ''}{' '}
+              {resume.phone || ''} {resume.phone && resume.location ? '|' : ''}{' '}
+              {resume.location || ''}
+            </p>
+          </>
+        ) : null}
 
-        <p className='text-sm my-4'>
-          {resume.summary || (
-            <span className='text-gray-400'>Your summary goes here...</span>
-          )}
-        </p>
+        {resume.summary && <p className='text-sm my-4'>{resume.summary}</p>}
 
-        <h2 className='font-semibold mt-4 text-2xl'>Experience</h2>
-        <hr className='mt-2 mb-5' />
-
-        <div className='flex flex-col gap-2'>
-          {resume.experience.length > 0 ? (
-            resume.experience.map((exp, index) => (
-              <div key={index} className='text-sm'>
-                <div>
-                  <div className='flex justify-between'>
-                    <p>
-                      <strong>{exp.company}</strong> - {exp.position}
-                    </p>
-                    <p>
-                      {formatDate(exp.start_date)} -{' '}
-                      {exp.isPresent ? 'Present' : formatDate(exp.end_date)}
-                    </p>
-                  </div>
+        {resume.experience.length > 0 && (
+          <>
+            <h2 className='font-semibold mt-4 text-xl'>EXPERIENCE</h2>
+            <hr className='mt-2 mb-5' />
+            <div className='flex flex-col gap-2'>
+              {resume.experience.map((exp, index) => (
+                <div key={index} className='text-md'>
                   <div>
+                    <div className='flex justify-between'>
+                      <p>
+                        <strong>{exp.company}</strong> - {exp.position}
+                      </p>
+                      <p>
+                        {formatDate(exp.start_date)} -{' '}
+                        {exp.isPresent ? 'Present' : formatDate(exp.end_date)}
+                      </p>
+                    </div>
                     <p>{exp.job_description}</p>
                   </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className='text-gray-400'>Your work experience...</p>
-          )}
-        </div>
+              ))}
+            </div>
+          </>
+        )}
 
-        <h2 className='font-semibold mt-4 text-2xl'>Education</h2>
-        <hr className='mt-2 mb-5' />
-
-        <div className='flex flex-col gap-2'>
-          {resume.education && resume.education.length > 0 ? (
-            resume.education.map((edu, index) => (
-              <div key={index} className='text-sm'>
-                <div>
-                  <div className='flex justify-between'>
-                    <p>
-                      <strong>{edu.school}</strong> - {edu.program}
-                    </p>
-                    <p>
-                      {formatDate(edu.start_date)} -{' '}
-                      {edu.isPresent ? 'Present' : formatDate(edu.end_date)}
-                    </p>
+        {resume.education.length > 0 && (
+          <>
+            <h2 className='font-semibold mt-4 text-xl'>EDUCATION</h2>
+            <hr className='mt-2 mb-5' />
+            <div className='flex flex-col gap-2'>
+              {resume.education.map((edu, index) => (
+                <div key={index} className='text-md'>
+                  <div>
+                    <div className='flex justify-between'>
+                      <p>
+                        <strong>{edu.school}</strong> - {edu.program}
+                      </p>
+                      <p>
+                        {formatDate(edu.start_date)} -{' '}
+                        {edu.isPresent ? 'Present' : formatDate(edu.end_date)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className='text-gray-400'>Your education history...</p>
-          )}
-        </div>
+              ))}
+            </div>
+          </>
+        )}
 
-        <h2 className='font-semibold mt-4 text-2xl'>Skills</h2>
-        <hr className='mt-2 mb-5' />
+        {resume.skills.length > 0 && (
+          <>
+            <h2 className='font-semibold mt-4 text-xl'>SKILLS</h2>
+            <hr className='mt-2 mb-5' />
+            <p className='text-sm'>{resume.skills.join(', ')}</p>
+          </>
+        )}
 
-        <p className='text-sm'>
-          {resume.skills.join(', ') || (
-            <span className='text-gray-400'>Your skills...</span>
-          )}
-        </p>
+        {resume.projects.length > 0 && (
+          <>
+            <h2 className='font-semibold mt-4 text-xl'>PROJECTS</h2>
+            <hr className='mt-2 mb-5' />
+            <p className='text-md'>
+              {resume.projects.map((project, index) => (
+                <span key={index} className='block'>
+                  <strong>{project.title}</strong>: {project.description}
+                  {project.link && (
+                    <>
+                      {' '}
+                      <a
+                        href={project.link}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-blue-500 underline'
+                      >
+                        {project.link}
+                      </a>
+                    </>
+                  )}
+                </span>
+              ))}
+            </p>
+          </>
+        )}
 
-        <h2 className='font-semibold mt-4 text-2xl'>Projects</h2>
-        <hr className='mt-2 mb-5' />
-
-        <p className='text-sm'>
-          {resume.projects.length > 0 ? (
-            resume.projects.map((project, index) => (
-              <span key={index} className='block'>
-                <strong>{project.title}</strong>: {project.description}
-                {project.link && (
-                  <>
-                    {' '}
-                    <a
-                      href={project.link}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-blue-500 underline'
-                    >
-                      {project.link}
-                    </a>
-                  </>
-                )}
-              </span>
-            ))
-          ) : (
-            <span className='text-gray-400'>Your projects...</span>
-          )}
-        </p>
-
-        <h2 className='font-semibold mt-4 text-2xl'>Certificates</h2>
-        <hr className='mt-2 mb-5' />
-
-        <p className='text-sm'>
-          {resume.certificates.length > 0 ? (
-            resume.certificates.map((cert, index) => (
-              <div key={index}>
-                <span className='font-medium'>{cert.name}</span> –{' '}
-                {cert.issued_by} ({cert.date})
-              </div>
-            ))
-          ) : (
-            <span className='text-gray-400'>Your certificates...</span>
-          )}
-        </p>
+        {resume.certificates.length > 0 && (
+          <>
+            <h2 className='font-semibold mt-4 text-xl'>CERTIFICATES</h2>
+            <hr className='mt-2 mb-5' />
+            <div className='text-md'>
+              {resume.certificates.map((cert, index) => (
+                <p key={index}>
+                  <span className='font-medium'>{cert.name}</span> –{' '}
+                  {cert.issued_by} ({cert.date})
+                </p>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

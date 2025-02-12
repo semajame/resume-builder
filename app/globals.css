@@ -6,6 +6,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.times{
+  font-family: 'Times New Roman', Times, serif
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
