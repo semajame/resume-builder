@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { Instagram, Facebook } from 'lucide-react'
+import ModeToggle from '../components/mode-toggle'
 
 const Footer = () => {
   return (
     <div className='my-10 px-10 flex justify-between items-center'>
-      <div className='flex gap-4'>
+      <div className='flex gap-4 items-center'>
         <Link
           href='https://www.facebook.com/jsev.12'
           aria-label='Go to James facebook'
@@ -17,6 +18,7 @@ const Footer = () => {
         >
           <Instagram />
         </Link>
+        <ModeToggle />
       </div>
       <div>
         <h1 className='text-sm dark:text-gray-200'>

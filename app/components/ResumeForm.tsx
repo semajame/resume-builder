@@ -275,11 +275,11 @@ export default function ResumeForm() {
   }
 
   return (
-    <div className='flex min-h-screen gap-5 flex-between'>
+    <div className='md:flex min-h-screen gap-5 md:flex-between '>
       {/* FORM */}
-      <div className='w-2/5 space-y-4 p-4 flex flex-col justify-between'>
+      <div className='w-full md:w-2/5 space-y-4 flex flex-col justify-between'>
         <Tabs defaultValue='personal' className='w-full'>
-          <TabsList className='w-full flex justify-between '>
+          <TabsList className='w-full flex md:justify-between '>
             <TabsTrigger value='personal' className='w-full '>
               Personal
             </TabsTrigger>
@@ -400,7 +400,7 @@ export default function ResumeForm() {
                 onChange={handleExperienceChange}
               />
             </div>
-            <div className='flex gap-4'>
+            <div className='flex gap-4 flex-col md:flex-row'>
               <div>
                 <Label>Start Date</Label>
                 <Input
@@ -501,7 +501,7 @@ export default function ResumeForm() {
                 onChange={handleEducationChange}
               />
             </div>
-            <div className='flex gap-4'>
+            <div className='flex gap-4 flex-col md:flex-row'>
               <div>
                 <Label>Start Date</Label>
                 <Input
@@ -756,7 +756,7 @@ export default function ResumeForm() {
       </div>
 
       {/* LIVE PREVIEW */}
-      <div className='w-3/5 border p-10 rounded-md h-auto times'>
+      <div className='w-full md:w-3/5 border p-10 rounded-md h-auto times'>
         {resume.name || resume.email || resume.phone || resume.location ? (
           <>
             <h2 className='text-lg font-semibold'>{resume.name || ''}</h2>

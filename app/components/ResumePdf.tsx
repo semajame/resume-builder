@@ -176,7 +176,7 @@ export const ResumeDocument = ({ resume }: PdfDialogProps) => {
 
 // ✅ Keep `ResumePDF` only for preview
 const ResumePDF = ({ resume }: PdfDialogProps) => (
-  <PDFViewer width='100%' height='600px'>
+  <PDFViewer width='100%' height='450px'>
     <ResumeDocument resume={resume} />
   </PDFViewer>
 )

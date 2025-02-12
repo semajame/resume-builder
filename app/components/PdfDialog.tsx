@@ -20,7 +20,7 @@ export function PdfDialog({ resume }: PdfDialogProps) {
       <DialogTrigger asChild>
         <Button variant='outline'>Generate PDF</Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[800px]'>
+      <DialogContent className='sm:max-w-[600px] '>
         <DialogHeader>
           <DialogTitle className='sr-only'>Resume Preview</DialogTitle>
         </DialogHeader>
