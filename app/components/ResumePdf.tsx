@@ -81,7 +81,7 @@ export const ResumeDocument = ({ resume }: PdfDialogProps) => {
               <>
                 <Text style={[styles.subtitle, styles.margin]}>Experience</Text>
                 <View style={styles.hr} />
-                {resume.experience.map((exp, index) => (
+                {resume.experience?.map((exp: Experience, index: number) => (
                   <View key={index} style={styles.section}>
                     <Text style={styles.text}>
                       {exp.company && (
@@ -105,7 +105,7 @@ export const ResumeDocument = ({ resume }: PdfDialogProps) => {
               <>
                 <Text style={[styles.subtitle, styles.margin]}>Education</Text>
                 <View style={styles.hr} />
-                {resume.education.map((edu, index) => (
+                {resume.education.map((edu: Education, index: number) => (
                   <View key={index} style={styles.section}>
                     <Text style={styles.text}>
                       <Text style={{ fontFamily: 'Times-Bold' }}>
@@ -136,7 +136,7 @@ export const ResumeDocument = ({ resume }: PdfDialogProps) => {
               <>
                 <Text style={[styles.subtitle, styles.margin]}>Projects</Text>
                 <View style={styles.hr} />
-                {resume.projects.map((project, index) => (
+                {resume.projects.map((project: Project, index: number) => (
                   <View key={index} style={styles.section}>
                     <Text style={styles.text}>
                       <Text style={{ fontFamily: 'Times-Bold' }}>
@@ -155,7 +155,7 @@ export const ResumeDocument = ({ resume }: PdfDialogProps) => {
                   Certificates
                 </Text>
                 <View style={styles.hr} />
-                {resume.certificates.map((cert, index) => (
+                {resume.certificates.map((cert: Certificate, index: number) => (
                   <View key={index} style={styles.section}>
                     <Text style={styles.text}>
                       <Text style={{ fontFamily: 'Times-Bold' }}>
