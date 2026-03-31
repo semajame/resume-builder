@@ -285,7 +285,7 @@ export default function ResumeForm() {
             </TabsTrigger>
 
             <DropdownMenu>
-              <DropdownMenuTrigger>
+              <DropdownMenuTrigger aria-label='More Sections'>
                 {' '}
                 <Ellipsis className='w-[80px]' />
               </DropdownMenuTrigger>
